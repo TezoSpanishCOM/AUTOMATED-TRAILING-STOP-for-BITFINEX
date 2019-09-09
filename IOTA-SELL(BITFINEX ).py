@@ -1,14 +1,16 @@
 import bitfinexpy, time
 
 # PARAMS USER #
-KEY = ''
-SECRET_KEY = ''
+KEY = 'AI KEY'
+SECRET_KEY = 'API SECRET KEY'
 bitfinex = bitfinexpy.API(environment="live", key=KEY, secret_key=SECRET_KEY)
 MARGEN_PRECIO = 0.0000005
 cantidad = 100
-PRECIO_OBJETIVO = 0.0000244
-#PRECIO_INICIAL = PRECIO_OBJETIVO - MARGEN_PRECIO (- 0.01*MARGEN DE PRECIO APROX.)
-PRECIO_INICIAL = 0.000049
+PRECIO_OBJETIVO = 0.0000254
+#PRECIO_MÍNIMO = PRECIO_OBJETIVO - MARGEN_PRECIO (NORMALMENTE)
+PRECIO_MÍNIMO = 0.0000249
+PRECIO_LÍMITE = 0.0000249
+precio = 100
 mercado = 'iotbtc'
 peticiones = 0 
 segundos = 0
@@ -48,7 +50,6 @@ def price_bid_ask(mercado):
 #ACTIVE ORDERS
 def analisis_ordenes_abiertas():
     ordenes = []
-    ordenes_a_cancelar = []
     active_orders = bitfinex.active_orders()
     for orden in active_orders:
         ordenes.append(orden)
@@ -83,13 +84,13 @@ def cancel_order(id):
 #SYMBOLS MARKETS
 # print('LISTA DE MERCADOS EN BITFINEX', bitfinex.symbols())
 bid, ask = price_bid_ask('iotbtc')
-print("PRECIO_INICIAL FIJADO: ", PRECIO_INICIAL)
+print("PRECIO_MÍNIMO FIJADO: ", PRECIO_MÍNIMO)
 print("PRECIO_OBJETIVO FIJADO: ", PRECIO_OBJETIVO)
-stop_loss = PRECIO_OBJETIVO
+stop_loss = PRECIO_MÍNIMO
 print("STOP LOSS: ", stop_loss)
 wallets()
 analisis_ordenes_abiertas()
-#crear_orden_venta('iotusd', str(10), str(3))
+#crear_orden_venta('iotbtc', str(10), str(3))
 wallets()
 analisis_ordenes_abiertas()
 operaciones_completada = False
@@ -98,9 +99,9 @@ while operaciones_completada == False:
     bid_ant = bid
     ask_ant = ask
     bid, ask = price_bid_ask('iotbtc')
-    if bid_ant != bid and bid >= PRECIO_INICIAL:
+    if bid_ant != bid and bid >= PRECIO_OBJETIVO:
         print('BID: {}. ASK: {}.'.format(bid, ask))
-        print('INCREMENTO %: ', 100*(bid/PRECIO_INICIAL-1))
+        print('INCREMENTO %: ', 100*(bid/PRECIO_MÍNIMO-1))
         if bid > stop_loss + MARGEN_PRECIO: # CONDICION PARA ACTUALIZAR LA VARIABLE DE STOP_LOSS
             stop_loss = bid - MARGEN_PRECIO
             print('NUEVO STOP-LOSS: {}'.format(stop_loss))
@@ -109,7 +110,7 @@ while operaciones_completada == False:
             # crear_ordenes('iotusd', stop_loss, bid, MARGEN_PRECIO, contador_cancel)
 
     #MIRAR SI TENEMOS QUE VENDER:
-    if bid <= stop_loss and bid > PRECIO_OBJETIVO:
+    if bid <= stop_loss and bid >= PRECIO_MÍNIMO and bid >= PRECIO_LÍMITE:
         crear_orden_venta('iotbtc', str(cantidad), str(precio))
         operaciones_completada = True
         wallets()
