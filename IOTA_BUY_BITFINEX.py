@@ -1,6 +1,6 @@
 import bitfinexpy, time
 
-# PARAMS USER #
+#PARAMS USER#
 KEY = 'API KEY'
 SECRET_KEY = 'API SECRET KEY'
 bitfinex = bitfinexpy.API(environment="live", key=KEY, secret_key=SECRET_KEY)
